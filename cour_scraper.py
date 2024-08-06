@@ -1,6 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
 import csv
 import time
 import re
@@ -8,6 +11,8 @@ import re
 driver = webdriver.Chrome()
 
 driver.get("https://building.cdaid.org/Permit/Search.aspx/")
+file_name = input('Name your csv file: ')
+name = file_name + '.csv'
 
 time.sleep(4)
 
@@ -28,3 +33,10 @@ time.sleep(4)
 
 headers = driver.find_element(By.XPATH, '//table[@id="ContentPlaceHolder1_grdResults"]//tr[1]')
 
+clean_headers = word_tokenize(headers.text)
+
+
+""" with open(f'{name}.csv', 'w', encoding='utf-8') as file:
+    fieldnames = ['Title', 'Likes', 'Comments']
+    writer = csv.DictWriter(file, fieldnames=fieldnames)
+    writer.writeheader() """
