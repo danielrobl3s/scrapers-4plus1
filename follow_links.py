@@ -215,4 +215,4 @@ for link in valid_links:
     finally:
         # Ensure the driver is always closed properly
         driver.close()
-        time.sleep(10)  # Short delay between requests
+        time.sleep(280)  # Short delay between requests
