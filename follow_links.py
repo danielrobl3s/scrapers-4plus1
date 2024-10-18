@@ -7,15 +7,18 @@ from csv import DictWriter
 
 
 def check_links_first(links):
-    
-   for link in links:
-       try:
-           with open(link.replace("/propertyrecord-search/Hayden_ID/", "")+"_links.txt", 'r') as f:
-               f.read()
+    """Filter out links that already have corresponding '_links.txt' files."""
+    valid_links = []
+    for link in links:
+        filename = link.replace("/propertyrecord-search/Hayden_ID/", "") + "_links.txt"
+        try:
+            with open(filename, 'r'):
+                # File exists, skip this link
+                continue
+        except FileNotFoundError:
+            valid_links.append(link)  # Keep this link if file not found
 
-               links.remove(link)
-       except:
-            pass
+    return valid_links
        
 
 # List of links to scrape
@@ -179,10 +182,12 @@ links = [
 
 base_url = "https://www.realtor.com"
 
-check_links_first(links)
+valid_links = check_links_first(links)
+
+print(valid_links)
 
 # Loop through each link
-for link in links:
+for link in valid_links:
     try:
         # Initialize the WebDriver for each link
         driver = Driver.get(base_url + link)
