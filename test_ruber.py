@@ -1,3 +1,13 @@
+import csv
+from cdriver import Driver
+import time
+import random
+from lxml import etree
+from bs4 import BeautifulSoup
+from csv import DictWriter
+
+
+links = [
       "/propertyrecord-search/Hayden_ID/Burdock-Loop",
       "/propertyrecord-search/Hayden_ID/E-Arena-Loop",
       "/propertyrecord-search/Hayden_ID/E-Avon-Cir",
@@ -153,3 +163,82 @@
       "/propertyrecord-search/Hayden_ID/N-Stonehaven-Dr",
       "/propertyrecord-search/Hayden_ID/N-Strahorn-Rd",
       "/propertyrecord-search/Hayden_ID/N-Summerfield-Loop",
+]
+
+def try_or_not_found(dom, xpath_expression):
+
+   try:
+      item = dom.xpath(xpath_expression)
+
+   except:
+      item = 'not found'
+
+   return item
+
+
+def neighborhoods(links):
+
+   for link in links:
+
+      with open('scraped_neighborhoods.txt', 'r') as f:
+         for line in f:
+
+            print('this is the line: '+line)
+            print('and this is the link: '+link)
+
+            if line == link:
+               print('yes')
+               continue
+
+            else:
+
+               name = link.replace("/propertyrecord-search/Hayden_ID/", "") + "_links.txt"
+
+               with open(name, 'r') as f:
+                  for l in f:
+                     nl = l.replace("'", "")
+                     nl = nl.strip(",")
+                     print(nl)
+
+                     driver = Driver.get(nl)
+
+                     time.sleep(random.randint(10, 30))
+
+                     html = driver.page_source
+
+                     soup = BeautifulSoup(html, 'lxml')
+
+                     dom = etree.HTML(str(soup))
+
+                     address = try_or_not_found(dom, '//h1[@class="sc-79f365fd-3 bUJjRW"]/text()')
+
+                     property_type = try_or_not_found(dom, '(//p[@class="base__StyledType-rui__sc-108xfm0-0 jiKtVG sc-2c9812a2-2 eFLSTd listing-key-fact-item-value"])[1]')
+
+                     year_built = try_or_not_found(dom, '(//p[@class="base__StyledType-rui__sc-108xfm0-0 jiKtVG sc-2c9812a2-2 eFLSTd listing-key-fact-item-value"])[2]')
+                     
+                     bedrooms = try_or_not_found(dom, '(//ul[@class="PropertyMetastyles__StyledPropertyMeta-rui__sc-1g5rdjn-0 fcA-DfD sc-79f365fd-1 kiccaE"]//text())[1]')
+
+                     bathrooms = try_or_not_found(dom, '(//ul[@class="PropertyMetastyles__StyledPropertyMeta-rui__sc-1g5rdjn-0 fcA-DfD sc-79f365fd-1 kiccaE"]//text())[3]')
+
+                     sqft = try_or_not_found(dom, '(//ul[@class="PropertyMetastyles__StyledPropertyMeta-rui__sc-1g5rdjn-0 fcA-DfD sc-79f365fd-1 kiccaE"]//text())[5]')
+                     
+                     acre_lot = try_or_not_found(dom, '(//ul[@class="PropertyMetastyles__StyledPropertyMeta-rui__sc-1g5rdjn-0 fcA-DfD sc-79f365fd-1 kiccaE"]//text())[8]')
+
+                     with open('houses_hayden_id.csv', 'a', newline='', encoding='utf-8') as file:
+                        
+                        fieldnames = ['address', 'property_type', 'year_built', 'bedrooms', 'bathrooms', 'sqft', 'acre_lot']
+                        writer = DictWriter(file, fieldnames=fieldnames)
+                        writer.writeheader()
+
+                        writer.writerow({'address': address, 'property_type': property_type, 'year_built': year_built, 'bedrooms': bedrooms, 'bathrooms': bathrooms, 'sqft': sqft, 'acre_lot': acre_lot})
+
+                     driver.close()
+                     time.sleep(280)
+
+def main():
+   neighborhoods(links)
+
+
+# Entry point --------->
+if __name__ == '__main__':
+   main()
